@@ -1,0 +1,46 @@
+
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: airline-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: Kevin
+      POSTGRES_PASSWORD: 31072008
+      POSTGRES_DB: airline_db
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - airline_network
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: airline-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    ports:
+      - "8080:80"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - airline_network
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  airline_network:
+    driver: bridge
