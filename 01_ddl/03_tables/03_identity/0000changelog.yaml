@@ -1,0 +1,7 @@
+databaseChangeLog:
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0010-create-person_type }
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0011-create-document_type }
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0012-create-contact_type }
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0013-create-person }
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0014-create-person_document }
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0015-create-person_contact }

@@ -1,0 +1,10 @@
+databaseChangeLog:
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0022-create-customer_category }
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0023-create-benefit_type }
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0024-create-loyalty_program }
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0025-create-loyalty_tier }
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0026-create-customer }
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0027-create-loyalty_account }
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0028-create-loyalty_account_tier }
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0029-create-miles_transaction }
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0030-create-customer_benefit }
