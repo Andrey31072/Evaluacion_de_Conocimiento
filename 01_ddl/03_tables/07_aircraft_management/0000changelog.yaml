@@ -1,0 +1,10 @@
+databaseChangeLog:
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0036-create-aircraft_manufacturer }
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0037-create-aircraft_model }
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0038-create-cabin_class }
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0039-create-aircraft }
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0040-create-aircraft_cabin }
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0041-create-aircraft_seat }
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0042-create-maintenance_provider }
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0043-create-maintenance_type }
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0044-create-maintenance_event }
