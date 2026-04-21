@@ -1,16 +1,14 @@
 databaseChangeLog:
   - changeSet:
-      id: 78bf1438-0529-4c1a-aced-fbd01a6b1c75
-      author: ariel5253
-      labels: "BD-01-dev,ddl,base,extensions"
-      comment: Enables the uuid-ossp extension for the database baseline.
+      id: 0001-create-extension-pgcrypto
+      author: Kevin Andrey Culam Gomez
+      description: Crear extensión pgcrypto para UUIDs y hashing
       changes:
-        - sqlFile:
-            path: 001_enable_uuid_extension.sql
-            relativeToChangelogFile: true
-            stripComments: false
+        - sql:
+            sql: "CREATE EXTENSION IF NOT EXISTS pgcrypto;"
+            endDelimiter: ;
+            splitStatements: true
       rollback:
-        - sqlFile:
-            path: ../../05_rollbacks/01_ddl/00_extensions/001_enable_uuid_extension.rollback.sql
-            relativeToChangelogFile: true
-            stripComments: false
+        - sql:
+            sql: "DROP EXTENSION IF EXISTS pgcrypto;"
+            endDelimiter: ;
