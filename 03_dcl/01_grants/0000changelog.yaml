@@ -1,1 +1,40 @@
-databaseChangeLog: []
+databaseChangeLog:
+  - changeSet:
+      id: 3101-grant-privileges-by-role
+      author: andrey
+      description: Asignación de permisos (GRANT) por rol - principio de menor privilegio
+      changes:
+        - sql:
+            sql: |
+              -- Rol de migración (Liquibase)
+              GRANT CREATE, USAGE ON SCHEMA public TO app_migrator;
+              GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO app_migrator;
+              ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO app_migrator;
+
+              -- Rol readonly (base)
+              GRANT CONNECT ON DATABASE airline_db TO readonly;
+              GRANT USAGE ON SCHEMA public TO readonly;
+              GRANT SELECT ON ALL TABLES IN SCHEMA public TO readonly;
+              ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO readonly;
+
+              -- Roles específicos
+              GRANT SELECT, INSERT, UPDATE ON 
+                flight, flight_segment, aircraft, airport, terminal, boarding_gate 
+              TO airline_operator;
+
+              GRANT SELECT, INSERT, UPDATE ON 
+                reservation, reservation_passenger, ticket, ticket_segment, customer, loyalty_account 
+              TO customer_service;
+
+              GRANT SELECT, INSERT, UPDATE ON 
+                payment, invoice, refund, sale 
+              TO finance;
+
+              -- Auditor solo lectura + acceso a logs (si tienes tabla de audit)
+              GRANT SELECT ON ALL TABLES IN SCHEMA public TO auditor;
+
+              -- Revocar permisos peligrosos del rol público
+              REVOKE ALL ON DATABASE airline_db FROM PUBLIC;
+              REVOKE CREATE ON SCHEMA public FROM PUBLIC;
+            endDelimiter: ;
+            splitStatements: true
