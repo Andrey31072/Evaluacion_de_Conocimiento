@@ -1,0 +1,18 @@
+databaseChangeLog:
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0050-create-reservation_status }
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0051-create-sale_channel }
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0052-create-fare_class }
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0053-create-fare }
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0054-create-ticket_status }
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0055-create-reservation }
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0056-create-reservation_passenger }
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0057-create-sale }
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0058-create-ticket }
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0059-create-ticket_segment }
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0060-create-seat_assignment }
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0061-create-baggage }
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0062-create-boarding_group }
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0063-create-check_in_status }
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0064-create-check_in }
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0065-create-boarding_pass }
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0066-create-boarding_validation }

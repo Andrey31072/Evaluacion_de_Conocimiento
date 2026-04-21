@@ -1,0 +1,7 @@
+databaseChangeLog:
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0016-create-user_status }
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0017-create-security_role }
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0018-create-security_permission }
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0019-create-user_account }
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0020-create-user_role }
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0021-create-role_permission }
