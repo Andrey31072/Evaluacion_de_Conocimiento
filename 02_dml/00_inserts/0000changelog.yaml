@@ -1,16 +1,508 @@
 databaseChangeLog:
+  # ============================================
+  # REFERENCE DATA - Datos básicos necesarios
+  # ============================================
+
   - changeSet:
-      id: 9ec09d36-0d2b-42b1-b722-a014da3f0c59
-      author: ariel5253
-      labels: "insert data,dml,role,security"
-      comment: "Inserts the baseline roles into the security schema."
+      id: 1001-insert-time_zones
+      author: andrey
+      description: Insertar zonas horarias principales
       changes:
-        - sqlFile:
-            path: 001_insert_role.sql
-            relativeToChangelogFile: true
-            stripComments: false
-      rollback:
-        - sqlFile:
-            path: ../../05_rollbacks/02_dml/00_inserts/001_insert_role.rollback.sql
-            relativeToChangelogFile: true
-            stripComments: false
+        - sql:
+            sql: |
+              INSERT INTO time_zone (time_zone_name, utc_offset_minutes) VALUES
+                ('America/Bogota', -300),
+                ('America/New_York', -300),
+                ('Europe/Madrid', 60),
+                ('America/Sao_Paulo', -180)
+              ON CONFLICT DO NOTHING;
+            endDelimiter: ;
+
+  - changeSet:
+      id: 1002-insert-continents
+      author: andrey
+      description: Insertar continentes
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO continent (continent_code, continent_name) VALUES
+                ('SA', 'South America'),
+                ('NA', 'North America'),
+                ('EU', 'Europe'),
+                ('AF', 'Africa'),
+                ('AS', 'Asia')
+              ON CONFLICT DO NOTHING;
+            endDelimiter: ;
+
+  - changeSet:
+      id: 1003-insert-countries
+      author: andrey
+      description: Insertar países (enfocado en Colombia y algunos relevantes)
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO country (continent_id, iso_alpha2, iso_alpha3, country_name) 
+              SELECT 
+                c.continent_id,
+                'CO', 'COL', 'Colombia'
+              FROM continent c WHERE c.continent_code = 'SA'
+              ON CONFLICT DO NOTHING;
+
+              INSERT INTO country (continent_id, iso_alpha2, iso_alpha3, country_name) 
+              SELECT 
+                c.continent_id,
+                'US', 'USA', 'United States'
+              FROM continent c WHERE c.continent_code = 'NA'
+              ON CONFLICT DO NOTHING;
+
+              INSERT INTO country (continent_id, iso_alpha2, iso_alpha3, country_name) 
+              SELECT 
+                c.continent_id,
+                'ES', 'ESP', 'Spain'
+              FROM continent c WHERE c.continent_code = 'EU'
+              ON CONFLICT DO NOTHING;
+            endDelimiter: ;
+
+  - changeSet:
+      id: 1004-insert-currencies
+      author: andrey
+      description: Insertar monedas principales
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO currency (iso_currency_code, currency_name, currency_symbol, minor_units) VALUES
+                ('USD', 'United States Dollar', '$', 2),
+                ('EUR', 'Euro', '€', 2),
+                ('COP', 'Colombian Peso', '$', 2)
+              ON CONFLICT DO NOTHING;
+            endDelimiter: ;
+
+  - changeSet:
+      id: 1005-insert-person_types
+      author: andrey
+      description: Tipos de persona básicos
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO person_type (type_code, type_name) VALUES
+                ('NATURAL', 'Persona Natural'),
+                ('LEGAL', 'Persona Jurídica')
+              ON CONFLICT DO NOTHING;
+            endDelimiter: ;
+
+  - changeSet:
+      id: 1006-insert-document_types
+      author: andrey
+      description: Tipos de documentos comunes
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO document_type (type_code, type_name) VALUES
+                ('CC', 'Cédula de Ciudadanía'),
+                ('TI', 'Tarjeta de Identidad'),
+                ('PAS', 'Pasaporte'),
+                ('NIT', 'Número de Identificación Tributaria')
+              ON CONFLICT DO NOTHING;
+            endDelimiter: ;
+
+  - changeSet:
+      id: 1007-insert-contact_types
+      author: andrey
+      description: Tipos de contacto
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO contact_type (type_code, type_name) VALUES
+                ('EMAIL', 'Correo Electrónico'),
+                ('PHONE', 'Teléfono Móvil'),
+                ('WHATSAPP', 'WhatsApp')
+              ON CONFLICT DO NOTHING;
+            endDelimiter: ;
+
+  - changeSet:
+      id: 1008-insert-user_status
+      author: andrey
+      description: Estados de cuenta de usuario
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO user_status (status_code, status_name) VALUES
+                ('ACTIVE', 'Activo'),
+                ('INACTIVE', 'Inactivo'),
+                ('BLOCKED', 'Bloqueado'),
+                ('PENDING', 'Pendiente de activación')
+              ON CONFLICT DO NOTHING;
+            endDelimiter: ;
+
+  # ============================================
+  # AIRLINE & AIRPORT BASIC DATA
+  # ============================================
+
+  - changeSet:
+      id: 1010-insert-airlines
+      author: andrey
+      description: Aerolíneas iniciales (enfocado en Colombia y región)
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO airline (home_country_id, airline_code, airline_name, iata_code, icao_code, is_active)
+              SELECT 
+                country_id,
+                'AV', 'Avianca', 'AV', 'AVA', true
+              FROM country 
+              WHERE iso_alpha2 = 'CO'
+              ON CONFLICT DO NOTHING;
+
+              INSERT INTO airline (home_country_id, airline_code, airline_name, iata_code, icao_code, is_active)
+              SELECT 
+                country_id,
+                'LA', 'LATAM Airlines', 'LA', 'LAN', true
+              FROM country 
+              WHERE iso_alpha2 = 'CO'
+              ON CONFLICT DO NOTHING;
+
+              INSERT INTO airline (home_country_id, airline_code, airline_name, iata_code, icao_code, is_active)
+              SELECT 
+                country_id,
+                'AA', 'American Airlines', 'AA', 'AAL', true
+              FROM country 
+              WHERE iso_alpha2 = 'US'
+              ON CONFLICT DO NOTHING;
+            endDelimiter: ;
+
+  - changeSet:
+      id: 1011-insert-airports
+      author: andrey
+      description: Aeropuertos principales (Bogotá, Medellín, Cali, etc.)
+      changes:
+        - sql:
+            sql: |
+              -- Bogotá (BOG)
+              INSERT INTO airport (address_id, airport_name, iata_code, icao_code, is_active)
+              SELECT 
+                (SELECT address_id FROM address LIMIT 1), 
+                'El Dorado International Airport', 'BOG', 'SKBO', true
+              WHERE EXISTS (SELECT 1 FROM address LIMIT 1)
+              ON CONFLICT DO NOTHING;
+
+              -- Medellín (MDE)
+              INSERT INTO airport (address_id, airport_name, iata_code, icao_code, is_active)
+              SELECT 
+                (SELECT address_id FROM address LIMIT 1), 
+                'José María Córdova International Airport', 'MDE', 'SKRG', true
+              WHERE EXISTS (SELECT 1 FROM address LIMIT 1)
+              ON CONFLICT DO NOTHING;
+
+              -- Cali (CLO)
+              INSERT INTO airport (address_id, airport_name, iata_code, icao_code, is_active)
+              SELECT 
+                (SELECT address_id FROM address LIMIT 1), 
+                'Alfonso Bonilla Aragón International Airport', 'CLO', 'SKCL', true
+              WHERE EXISTS (SELECT 1 FROM address LIMIT 1)
+              ON CONFLICT DO NOTHING;
+            endDelimiter: ;
+
+  # ============================================
+  # SECURITY & ROLES
+  # ============================================
+
+  - changeSet:
+      id: 1020-insert-security_roles
+      author: andrey
+      description: Roles de seguridad iniciales
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO security_role (role_code, role_name, role_description) VALUES
+                ('ADMIN', 'Administrador del Sistema', 'Acceso total al sistema'),
+                ('AIRLINE_OPERATOR', 'Operador de Aerolínea', 'Gestión de vuelos, aeronaves y aeropuertos'),
+                ('CUSTOMER_SERVICE', 'Servicio al Cliente', 'Gestión de reservas, pasajeros y lealtad'),
+                ('FINANCE', 'Finanzas', 'Gestión de pagos, facturación y reembolsos'),
+                ('AUDITOR', 'Auditor', 'Acceso de solo lectura para auditoría')
+              ON CONFLICT DO NOTHING;
+            endDelimiter: ;
+
+  - changeSet:
+      id: 1021-insert-security_permissions
+      author: andrey
+      description: Permisos básicos de seguridad
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO security_permission (permission_code, permission_name, permission_description) VALUES
+                ('FLIGHT_READ', 'Ver vuelos', 'Permiso para consultar información de vuelos'),
+                ('FLIGHT_WRITE', 'Gestionar vuelos', 'Crear, actualizar y eliminar vuelos'),
+                ('RESERVATION_READ', 'Ver reservas', 'Consultar reservas'),
+                ('RESERVATION_WRITE', 'Gestionar reservas', 'Crear y modificar reservas'),
+                ('CUSTOMER_READ', 'Ver clientes', 'Consultar información de clientes'),
+                ('CUSTOMER_WRITE', 'Gestionar clientes', 'Crear y actualizar clientes'),
+                ('PAYMENT_PROCESS', 'Procesar pagos', 'Autorizar y capturar pagos'),
+                ('REPORT_READ', 'Ver reportes', 'Acceso a reportes del sistema')
+              ON CONFLICT DO NOTHING;
+            endDelimiter: ;
+
+  # ============================================
+  # LOYALTY PROGRAM BASIC DATA
+  # ============================================
+
+  - changeSet:
+      id: 1030-insert-loyalty_programs
+      author: andrey
+      description: Programas de lealtad iniciales
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO loyalty_program (airline_id, default_currency_id, program_code, program_name, expiration_months)
+              SELECT 
+                a.airline_id,
+                c.currency_id,
+                'LIFE', 'LifeMiles', 36
+              FROM airline a, currency c
+              WHERE a.airline_code = 'AV' 
+                AND c.iso_currency_code = 'COP'
+              ON CONFLICT DO NOTHING;
+
+              INSERT INTO loyalty_program (airline_id, default_currency_id, program_code, program_name, expiration_months)
+              SELECT 
+                a.airline_id,
+                c.currency_id,
+                'LATAM', 'LATAM Pass', 24
+              FROM airline a, currency c
+              WHERE a.airline_code = 'LA' 
+                AND c.iso_currency_code = 'USD'
+              ON CONFLICT DO NOTHING;
+            endDelimiter: ;
+
+  # ============================================
+  # FLIGHT STATUS & OTHER REFERENCE
+  # ============================================
+
+  - changeSet:
+      id: 1040-insert-flight_status
+      author: andrey
+      description: Estados posibles de un vuelo
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO flight_status (status_code, status_name) VALUES
+                ('SCHEDULED', 'Programado'),
+                ('BOARDING', 'Embarcando'),
+                ('DEPARTED', 'Despegado'),
+                ('IN_AIR', 'En vuelo'),
+                ('LANDED', 'Aterrizado'),
+                ('CANCELLED', 'Cancelado'),
+                ('DELAYED', 'Retrasado')
+              ON CONFLICT DO NOTHING;
+            endDelimiter: ;
+
+  - changeSet:
+      id: 1041-insert-reservation_status
+      author: andrey
+      description: Estados de reserva
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO reservation_status (status_code, status_name) VALUES
+                ('PENDING', 'Pendiente'),
+                ('CONFIRMED', 'Confirmada'),
+                ('CANCELLED', 'Cancelada'),
+                ('COMPLETED', 'Completada')
+              ON CONFLICT DO NOTHING;
+            endDelimiter: ;
+
+  - changeSet:
+      id: 1042-insert-ticket_status
+      author: andrey
+      description: Estados de ticket
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO ticket_status (status_code, status_name) VALUES
+                ('ISSUED', 'Emitido'),
+                ('CHECKED_IN', 'Check-in realizado'),
+                ('BOARDED', 'Embarcado'),
+                ('CANCELLED', 'Cancelado'),
+                ('REFUNDED', 'Reembolsado')
+              ON CONFLICT DO NOTHING;
+            endDelimiter: ;
+
+  - changeSet:
+      id: 1050-insert-cabin_classes
+      author: andrey
+      description: Clases de cabina básicas
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO cabin_class (class_code, class_name) VALUES
+                ('ECON', 'Economy'),
+                ('PREM', 'Premium Economy'),
+                ('BUS', 'Business'),
+                ('FIRST', 'First Class')
+              ON CONFLICT DO NOTHING;
+            endDelimiter: ;
+              # ============================================
+  # GEOGRAPHY - Más ciudades y estados de Colombia
+  # ============================================
+
+  - changeSet:
+      id: 1060-insert-colombian-states-and-cities
+      author: andrey
+      description: Departamentos y ciudades principales de Colombia (datos realistas)
+      changes:
+        - sql:
+            sql: |
+              -- Departamentos (ejemplos)
+              INSERT INTO state_province (country_id, state_code, state_name)
+              SELECT country_id, 'DC', 'Bogotá D.C.' FROM country WHERE iso_alpha2 = 'CO' ON CONFLICT DO NOTHING;
+
+              INSERT INTO state_province (country_id, state_code, state_name)
+              SELECT country_id, 'ANT', 'Antioquia' FROM country WHERE iso_alpha2 = 'CO' ON CONFLICT DO NOTHING;
+
+              INSERT INTO state_province (country_id, state_code, state_name)
+              SELECT country_id, 'VAL', 'Valle del Cauca' FROM country WHERE iso_alpha2 = 'CO' ON CONFLICT DO NOTHING;
+
+              -- Ciudades principales
+              INSERT INTO city (state_province_id, time_zone_id, city_name)
+              SELECT 
+                sp.state_province_id,
+                tz.time_zone_id,
+                'Bogotá'
+              FROM state_province sp, time_zone tz 
+              WHERE sp.state_name = 'Bogotá D.C.' 
+                AND tz.time_zone_name = 'America/Bogota'
+              ON CONFLICT DO NOTHING;
+
+              INSERT INTO city (state_province_id, time_zone_id, city_name)
+              SELECT 
+                sp.state_province_id,
+                tz.time_zone_id,
+                'Medellín'
+              FROM state_province sp, time_zone tz 
+              WHERE sp.state_name = 'Antioquia' 
+                AND tz.time_zone_name = 'America/Bogota'
+              ON CONFLICT DO NOTHING;
+
+              INSERT INTO city (state_province_id, time_zone_id, city_name)
+              SELECT 
+                sp.state_province_id,
+                tz.time_zone_id,
+                'Cali'
+              FROM state_province sp, time_zone tz 
+              WHERE sp.state_name = 'Valle del Cauca' 
+                AND tz.time_zone_name = 'America/Bogota'
+              ON CONFLICT DO NOTHING;
+            endDelimiter: ;
+
+  # ============================================
+  # SAMPLE PERSONS & CUSTOMERS
+  # ============================================
+
+  - changeSet:
+      id: 1070-insert-sample-persons
+      author: andrey
+      description: Personas de prueba (empleados y clientes)
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO person (person_type_id, nationality_country_id, first_name, last_name, gender_code, birth_date)
+              SELECT 
+                pt.person_type_id,
+                co.country_id,
+                'Juan', 'Pérez', 'M', '1990-05-15'
+              FROM person_type pt, country co 
+              WHERE pt.type_code = 'NATURAL' 
+                AND co.iso_alpha2 = 'CO'
+              ON CONFLICT DO NOTHING;
+
+              INSERT INTO person (person_type_id, nationality_country_id, first_name, last_name, gender_code, birth_date)
+              SELECT 
+                pt.person_type_id,
+                co.country_id,
+                'María', 'Gómez', 'F', '1985-11-20'
+              FROM person_type pt, country co 
+              WHERE pt.type_code = 'NATURAL' 
+                AND co.iso_alpha2 = 'CO'
+              ON CONFLICT DO NOTHING;
+            endDelimiter: ;
+
+  - changeSet:
+      id: 1071-insert-sample-customers
+      author: andrey
+      description: Clientes de prueba vinculados a aerolíneas
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO customer (airline_id, person_id, customer_category_id, customer_since)
+              SELECT 
+                a.airline_id,
+                p.person_id,
+                NULL,
+                CURRENT_DATE - INTERVAL '2 years'
+              FROM airline a, person p
+              WHERE a.airline_code = 'AV'
+                AND p.first_name = 'Juan'
+              ON CONFLICT DO NOTHING;
+            endDelimiter: ;
+
+  # ============================================
+  # SAMPLE FLIGHTS (realistas)
+  # ============================================
+
+  - changeSet:
+      id: 1080-insert-sample-flights
+      author: andrey
+      description: Vuelos de ejemplo (Avianca BOG-MDE y BOG-CLO)
+      changes:
+        - sql:
+            sql: |
+              -- Vuelo Avianca BOG -> MDE
+              INSERT INTO flight (airline_id, aircraft_id, flight_status_id, flight_number, service_date)
+              SELECT 
+                a.airline_id,
+                (SELECT aircraft_id FROM aircraft LIMIT 1),
+                fs.flight_status_id,
+                'AV1234',
+                CURRENT_DATE + INTERVAL '3 days'
+              FROM airline a, flight_status fs
+              WHERE a.airline_code = 'AV' 
+                AND fs.status_code = 'SCHEDULED'
+              ON CONFLICT DO NOTHING;
+
+              -- Vuelo Avianca BOG -> CLO
+              INSERT INTO flight (airline_id, aircraft_id, flight_status_id, flight_number, service_date)
+              SELECT 
+                a.airline_id,
+                (SELECT aircraft_id FROM aircraft LIMIT 1),
+                fs.flight_status_id,
+                'AV5678',
+                CURRENT_DATE + INTERVAL '5 days'
+              FROM airline a, flight_status fs
+              WHERE a.airline_code = 'AV' 
+                AND fs.status_code = 'SCHEDULED'
+              ON CONFLICT DO NOTHING;
+            endDelimiter: ;
+
+  # ============================================
+  # SAMPLE RESERVATIONS & TICKETS
+  # ============================================
+
+  - changeSet:
+      id: 1090-insert-sample-reservations
+      author: andrey
+      description: Reservas y tickets de prueba
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO reservation (booked_by_customer_id, reservation_status_id, sale_channel_id, reservation_code, booked_at)
+              SELECT 
+                c.customer_id,
+                rs.reservation_status_id,
+                sc.sale_channel_id,
+                'RES-' || to_char(now(), 'YYYYMMDDHH24MISS'),
+                now()
+              FROM customer c, reservation_status rs, sale_channel sc
+              WHERE rs.status_code = 'CONFIRMED'
+                AND sc.channel_code = 'WEB'  -- asumiendo que existe
+              LIMIT 1
+              ON CONFLICT DO NOTHING;
+            endDelimiter: ;

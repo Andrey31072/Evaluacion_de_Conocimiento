@@ -1,46 +1,4529 @@
 databaseChangeLog:
+  # ============================================
+  # GEOGRAPHY AND REFERENCE DATA
+  # ============================================
+
   - changeSet:
-      id: 6bc8aa7a-4647-4e7a-a881-7bfe4cb7bf78
-      author: ariel5253
-      labels: "BD-01-dev,ddl,base,security"
-      comment: Creates the baseline tables for the security module.
+      id: 0001-create-time_zone
+      author: andrey
+      description: Tabla de zonas horarias
       changes:
-        - sqlFile:
-            path: 001_create_security_tables.sql
-            relativeToChangelogFile: true
-            stripComments: false
-      rollback:
-        - sqlFile:
-            path: ../../05_rollbacks/01_ddl/03_tables/001_create_security_tables.rollback.sql
-            relativeToChangelogFile: true
-            stripComments: false
+        - createTable:
+            tableName: time_zone
+            columns:
+              - column:
+                  name: time_zone_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: time_zone_name
+                  type: varchar(64)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: utc_offset_minutes
+                  type: integer
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: time_zone
+            columnNames: time_zone_name
+            constraintName: uq_time_zone_name
+
   - changeSet:
-      id: c0322451-ad79-40c9-8f50-79d97bd63793
-      author: jesus.gonzalez
-      labels: "BD-01-dev,ddl,base,inventory"
-      comment: Creates the baseline tables for the inventory module.
+      id: 0002-create-continent
+      author: andrey
+      description: Tabla de continentes
       changes:
-        - sqlFile:
-            path: 002_create_inventory_tables.sql
-            relativeToChangelogFile: true
-            stripComments: false
-      rollback:
-        - sqlFile:
-            path: ../../05_rollbacks/01_ddl/03_tables/002_create_inventory_tables.rollback.sql
-            relativeToChangelogFile: true
-            stripComments: false
+        - createTable:
+            tableName: continent
+            columns:
+              - column:
+                  name: continent_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: continent_code
+                  type: varchar(3)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: continent_name
+                  type: varchar(64)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: continent
+            columnNames: continent_code
+            constraintName: uq_continent_code
+        - addUniqueConstraint:
+            tableName: continent
+            columnNames: continent_name
+            constraintName: uq_continent_name
+
   - changeSet:
-      id: 2638c509-758a-4345-a2dc-51c00d909e41
-      author: jesus.gonzalez
-      labels: "BD-01-dev,ddl,base,billing"
-      comment: Creates the baseline tables for the billing module.
+      id: 0003-create-country
+      author: andrey
+      description: Tabla de países
       changes:
-        - sqlFile:
-            path: 003_create_billing_tables.sql
-            relativeToChangelogFile: true
-            stripComments: false
-      rollback:
-        - sqlFile:
-            path: ../../05_rollbacks/01_ddl/03_tables/003_create_billing_tables.rollback.sql
-            relativeToChangelogFile: true
-            stripComments: false
+        - createTable:
+            tableName: country
+            columns:
+              - column:
+                  name: country_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: continent_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: continent(continent_id)
+              - column:
+                  name: iso_alpha2
+                  type: varchar(2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: iso_alpha3
+                  type: varchar(3)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: country_name
+                  type: varchar(128)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: country
+            columnNames: iso_alpha2
+            constraintName: uq_country_alpha2
+        - addUniqueConstraint:
+            tableName: country
+            columnNames: iso_alpha3
+            constraintName: uq_country_alpha3
+        - addUniqueConstraint:
+            tableName: country
+            columnNames: country_name
+            constraintName: uq_country_name
+
+  - changeSet:
+      id: 0004-create-state_province
+      author: andrey
+      description: Tabla de departamentos/estados/provincias
+      changes:
+        - createTable:
+            tableName: state_province
+            columns:
+              - column:
+                  name: state_province_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: country_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: country(country_id)
+              - column:
+                  name: state_code
+                  type: varchar(10)
+              - column:
+                  name: state_name
+                  type: varchar(128)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: state_province
+            columnNames: country_id,state_name
+            constraintName: uq_state_country_name
+
+  - changeSet:
+      id: 0005-create-city
+      author: andrey
+      description: Tabla de ciudades
+      changes:
+        - createTable:
+            tableName: city
+            columns:
+              - column:
+                  name: city_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: state_province_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: state_province(state_province_id)
+              - column:
+                  name: time_zone_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: time_zone(time_zone_id)
+              - column:
+                  name: city_name
+                  type: varchar(128)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: city
+            columnNames: state_province_id,city_name
+            constraintName: uq_city_state_name
+
+  - changeSet:
+      id: 0006-create-district
+      author: andrey
+      description: Tabla de distritos/barrios
+      changes:
+        - createTable:
+            tableName: district
+            columns:
+              - column:
+                  name: district_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: city_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: city(city_id)
+              - column:
+                  name: district_name
+                  type: varchar(128)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: district
+            columnNames: city_id,district_name
+            constraintName: uq_district_city_name
+
+  - changeSet:
+      id: 0007-create-address
+      author: andrey
+      description: Tabla de direcciones
+      changes:
+        - createTable:
+            tableName: address
+            columns:
+              - column:
+                  name: address_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: district_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: district(district_id)
+              - column:
+                  name: address_line_1
+                  type: varchar(200)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: address_line_2
+                  type: varchar(200)
+              - column:
+                  name: postal_code
+                  type: varchar(20)
+              - column:
+                  name: latitude
+                  type: numeric(10,7)
+              - column:
+                  name: longitude
+                  type: numeric(10,7)
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addCheckConstraint:
+            tableName: address
+            constraintName: ck_address_latitude
+            condition: latitude IS NULL OR (latitude BETWEEN -90 AND 90)
+        - addCheckConstraint:
+            tableName: address
+            constraintName: ck_address_longitude
+            condition: longitude IS NULL OR (longitude BETWEEN -180 AND 180)
+
+  - changeSet:
+      id: 0008-create-currency
+      author: andrey
+      description: Tabla de monedas
+      changes:
+        - createTable:
+            tableName: currency
+            columns:
+              - column:
+                  name: currency_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: iso_currency_code
+                  type: varchar(3)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: currency_name
+                  type: varchar(64)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: currency_symbol
+                  type: varchar(8)
+              - column:
+                  name: minor_units
+                  type: smallint
+                  defaultValue: 2
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: currency
+            columnNames: iso_currency_code
+            constraintName: uq_currency_code
+        - addUniqueConstraint:
+            tableName: currency
+            columnNames: currency_name
+            constraintName: uq_currency_name
+        - addCheckConstraint:
+            tableName: currency
+            constraintName: ck_currency_minor_units
+            condition: minor_units BETWEEN 0 AND 4
+
+  # ============================================
+  # AIRLINE
+  # ============================================
+
+  - changeSet:
+      id: 0009-create-airline
+      author: andrey
+      description: Tabla de aerolíneas
+      changes:
+        - createTable:
+            tableName: airline
+            columns:
+              - column:
+                  name: airline_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: home_country_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: country(country_id)
+              - column:
+                  name: airline_code
+                  type: varchar(10)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: airline_name
+                  type: varchar(150)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: iata_code
+                  type: varchar(2)
+              - column:
+                  name: icao_code
+                  type: varchar(3)
+              - column:
+                  name: is_active
+                  type: boolean
+                  defaultValue: true
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: airline
+            columnNames: airline_code
+            constraintName: uq_airline_code
+        - addUniqueConstraint:
+            tableName: airline
+            columnNames: airline_name
+            constraintName: uq_airline_name
+        - addUniqueConstraint:
+            tableName: airline
+            columnNames: iata_code
+            constraintName: uq_airline_iata
+        - addUniqueConstraint:
+            tableName: airline
+            columnNames: icao_code
+            constraintName: uq_airline_icao
+        - addCheckConstraint:
+            tableName: airline
+            constraintName: ck_airline_iata_len
+            condition: iata_code IS NULL OR char_length(iata_code) = 2
+        - addCheckConstraint:
+            tableName: airline
+            constraintName: ck_airline_icao_len
+            condition: icao_code IS NULL OR char_length(icao_code) = 3
+
+  # ============================================
+  # IDENTITY
+  # ============================================
+
+  - changeSet:
+      id: 0010-create-person_type
+      author: andrey
+      description: Tipos de persona
+      changes:
+        - createTable:
+            tableName: person_type
+            columns:
+              - column:
+                  name: person_type_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: type_code
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: type_name
+                  type: varchar(80)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: person_type
+            columnNames: type_code
+            constraintName: uq_person_type_code
+        - addUniqueConstraint:
+            tableName: person_type
+            columnNames: type_name
+            constraintName: uq_person_type_name
+
+  - changeSet:
+      id: 0011-create-document_type
+      author: andrey
+      description: Tipos de documento
+      changes:
+        - createTable:
+            tableName: document_type
+            columns:
+              - column:
+                  name: document_type_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: type_code
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: type_name
+                  type: varchar(80)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: document_type
+            columnNames: type_code
+            constraintName: uq_document_type_code
+        - addUniqueConstraint:
+            tableName: document_type
+            columnNames: type_name
+            constraintName: uq_document_type_name
+
+  - changeSet:
+      id: 0012-create-contact_type
+      author: andrey
+      description: Tipos de contacto
+      changes:
+        - createTable:
+            tableName: contact_type
+            columns:
+              - column:
+                  name: contact_type_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: type_code
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: type_name
+                  type: varchar(80)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: contact_type
+            columnNames: type_code
+            constraintName: uq_contact_type_code
+        - addUniqueConstraint:
+            tableName: contact_type
+            columnNames: type_name
+            constraintName: uq_contact_type_name
+
+  - changeSet:
+      id: 0013-create-person
+      author: andrey
+      description: Tabla principal de personas
+      changes:
+        - createTable:
+            tableName: person
+            columns:
+              - column:
+                  name: person_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: person_type_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: person_type(person_type_id)
+              - column:
+                  name: nationality_country_id
+                  type: uuid
+                  constraints:
+                    references: country(country_id)
+              - column:
+                  name: first_name
+                  type: varchar(80)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: middle_name
+                  type: varchar(80)
+              - column:
+                  name: last_name
+                  type: varchar(80)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: second_last_name
+                  type: varchar(80)
+              - column:
+                  name: birth_date
+                  type: date
+              - column:
+                  name: gender_code
+                  type: varchar(1)
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addCheckConstraint:
+            tableName: person
+            constraintName: ck_person_gender
+            condition: gender_code IS NULL OR gender_code IN ('F', 'M', 'X')
+
+  - changeSet:
+      id: 0014-create-person_document
+      author: andrey
+      description: Documentos de personas
+      changes:
+        - createTable:
+            tableName: person_document
+            columns:
+              - column:
+                  name: person_document_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: person_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: person(person_id)
+              - column:
+                  name: document_type_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: document_type(document_type_id)
+              - column:
+                  name: issuing_country_id
+                  type: uuid
+                  constraints:
+                    references: country(country_id)
+              - column:
+                  name: document_number
+                  type: varchar(64)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: issued_on
+                  type: date
+              - column:
+                  name: expires_on
+                  type: date
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: person_document
+            columnNames: document_type_id,issuing_country_id,document_number
+            constraintName: uq_person_document_natural
+        - addCheckConstraint:
+            tableName: person_document
+            constraintName: ck_person_document_dates
+            condition: expires_on IS NULL OR issued_on IS NULL OR expires_on >= issued_on
+
+  - changeSet:
+      id: 0015-create-person_contact
+      author: andrey
+      description: Contactos de personas
+      changes:
+        - createTable:
+            tableName: person_contact
+            columns:
+              - column:
+                  name: person_contact_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: person_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: person(person_id)
+              - column:
+                  name: contact_type_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: contact_type(contact_type_id)
+              - column:
+                  name: contact_value
+                  type: varchar(180)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_primary
+                  type: boolean
+                  defaultValue: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: person_contact
+            columnNames: person_id,contact_type_id,contact_value
+            constraintName: uq_person_contact_value
+
+  # ============================================
+  # SECURITY
+  # ============================================
+
+  - changeSet:
+      id: 0016-create-user_status
+      author: andrey
+      description: Estados de usuario
+      changes:
+        - createTable:
+            tableName: user_status
+            columns:
+              - column:
+                  name: user_status_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: status_code
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status_name
+                  type: varchar(80)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: user_status
+            columnNames: status_code
+            constraintName: uq_user_status_code
+        - addUniqueConstraint:
+            tableName: user_status
+            columnNames: status_name
+            constraintName: uq_user_status_name
+
+  - changeSet:
+      id: 0017-create-security_role
+      author: andrey
+      description: Roles de seguridad
+      changes:
+        - createTable:
+            tableName: security_role
+            columns:
+              - column:
+                  name: security_role_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: role_code
+                  type: varchar(30)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: role_name
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: role_description
+                  type: text
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: security_role
+            columnNames: role_code
+            constraintName: uq_security_role_code
+        - addUniqueConstraint:
+            tableName: security_role
+            columnNames: role_name
+            constraintName: uq_security_role_name
+
+  - changeSet:
+      id: 0018-create-security_permission
+      author: andrey
+      description: Permisos de seguridad
+      changes:
+        - createTable:
+            tableName: security_permission
+            columns:
+              - column:
+                  name: security_permission_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: permission_code
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: permission_name
+                  type: varchar(120)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: permission_description
+                  type: text
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: security_permission
+            columnNames: permission_code
+            constraintName: uq_security_permission_code
+        - addUniqueConstraint:
+            tableName: security_permission
+            columnNames: permission_name
+            constraintName: uq_security_permission_name
+
+  - changeSet:
+      id: 0019-create-user_account
+      author: andrey
+      description: Cuentas de usuario
+      changes:
+        - createTable:
+            tableName: user_account
+            columns:
+              - column:
+                  name: user_account_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: person_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: person(person_id)
+              - column:
+                  name: user_status_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: user_status(user_status_id)
+              - column:
+                  name: username
+                  type: varchar(80)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: password_hash
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_login_at
+                  type: timestamptz
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: user_account
+            columnNames: person_id
+            constraintName: uq_user_account_person
+        - addUniqueConstraint:
+            tableName: user_account
+            columnNames: username
+            constraintName: uq_user_account_username
+
+  - changeSet:
+      id: 0020-create-user_role
+      author: andrey
+      description: Asignación de roles a usuarios
+      changes:
+        - createTable:
+            tableName: user_role
+            columns:
+              - column:
+                  name: user_role_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: user_account_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: user_account(user_account_id)
+              - column:
+                  name: security_role_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: security_role(security_role_id)
+              - column:
+                  name: assigned_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: assigned_by_user_id
+                  type: uuid
+                  constraints:
+                    references: user_account(user_account_id)
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: user_role
+            columnNames: user_account_id,security_role_id
+            constraintName: uq_user_role
+
+  - changeSet:
+      id: 0021-create-role_permission
+      author: andrey
+      description: Asignación de permisos a roles
+      changes:
+        - createTable:
+            tableName: role_permission
+            columns:
+              - column:
+                  name: role_permission_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: security_role_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: security_role(security_role_id)
+              - column:
+                  name: security_permission_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: security_permission(security_permission_id)
+              - column:
+                  name: granted_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: role_permission
+            columnNames: security_role_id,security_permission_id
+            constraintName: uq_role_permission
+
+  # ============================================
+  # CUSTOMER AND LOYALTY
+  # ============================================
+
+  - changeSet:
+      id: 0022-create-customer_category
+      author: andrey
+      description: Categorías de cliente
+      changes:
+        - createTable:
+            tableName: customer_category
+            columns:
+              - column:
+                  name: customer_category_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: category_code
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: category_name
+                  type: varchar(80)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: customer_category
+            columnNames: category_code
+            constraintName: uq_customer_category_code
+        - addUniqueConstraint:
+            tableName: customer_category
+            columnNames: category_name
+            constraintName: uq_customer_category_name
+
+  - changeSet:
+      id: 0023-create-benefit_type
+      author: andrey
+      description: Tipos de beneficios
+      changes:
+        - createTable:
+            tableName: benefit_type
+            columns:
+              - column:
+                  name: benefit_type_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: benefit_code
+                  type: varchar(30)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: benefit_name
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: benefit_description
+                  type: text
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: benefit_type
+            columnNames: benefit_code
+            constraintName: uq_benefit_type_code
+        - addUniqueConstraint:
+            tableName: benefit_type
+            columnNames: benefit_name
+            constraintName: uq_benefit_type_name
+
+  - changeSet:
+      id: 0024-create-loyalty_program
+      author: andrey
+      description: Programas de lealtad
+      changes:
+        - createTable:
+            tableName: loyalty_program
+            columns:
+              - column:
+                  name: loyalty_program_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: airline_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: airline(airline_id)
+              - column:
+                  name: default_currency_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: currency(currency_id)
+              - column:
+                  name: program_code
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: program_name
+                  type: varchar(120)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: expiration_months
+                  type: integer
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: loyalty_program
+            columnNames: airline_id,program_code
+            constraintName: uq_loyalty_program_code
+        - addUniqueConstraint:
+            tableName: loyalty_program
+            columnNames: airline_id,program_name
+            constraintName: uq_loyalty_program_name
+        - addCheckConstraint:
+            tableName: loyalty_program
+            constraintName: ck_loyalty_program_expiration
+            condition: expiration_months IS NULL OR expiration_months > 0
+
+  - changeSet:
+      id: 0025-create-loyalty_tier
+      author: andrey
+      description: Niveles de lealtad
+      changes:
+        - createTable:
+            tableName: loyalty_tier
+            columns:
+              - column:
+                  name: loyalty_tier_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: loyalty_program_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: loyalty_program(loyalty_program_id)
+              - column:
+                  name: tier_code
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: tier_name
+                  type: varchar(80)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: priority_level
+                  type: integer
+                  constraints:
+                    nullable: false
+              - column:
+                  name: required_miles
+                  type: integer
+                  defaultValue: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: loyalty_tier
+            columnNames: loyalty_program_id,tier_code
+            constraintName: uq_loyalty_tier_code
+        - addUniqueConstraint:
+            tableName: loyalty_tier
+            columnNames: loyalty_program_id,tier_name
+            constraintName: uq_loyalty_tier_name
+        - addCheckConstraint:
+            tableName: loyalty_tier
+            constraintName: ck_loyalty_tier_priority
+            condition: priority_level > 0
+        - addCheckConstraint:
+            tableName: loyalty_tier
+            constraintName: ck_loyalty_tier_required_miles
+            condition: required_miles >= 0
+
+  - changeSet:
+      id: 0026-create-customer
+      author: andrey
+      description: Clientes
+      changes:
+        - createTable:
+            tableName: customer
+            columns:
+              - column:
+                  name: customer_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: airline_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: airline(airline_id)
+              - column:
+                  name: person_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: person(person_id)
+              - column:
+                  name: customer_category_id
+                  type: uuid
+                  constraints:
+                    references: customer_category(customer_category_id)
+              - column:
+                  name: customer_since
+                  type: date
+                  defaultValueComputed: current_date
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: customer
+            columnNames: airline_id,person_id
+            constraintName: uq_customer_airline_person
+
+  - changeSet:
+      id: 0027-create-loyalty_account
+      author: andrey
+      description: Cuentas de lealtad
+      changes:
+        - createTable:
+            tableName: loyalty_account
+            columns:
+              - column:
+                  name: loyalty_account_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: customer_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: customer(customer_id)
+              - column:
+                  name: loyalty_program_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: loyalty_program(loyalty_program_id)
+              - column:
+                  name: account_number
+                  type: varchar(40)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: opened_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: loyalty_account
+            columnNames: account_number
+            constraintName: uq_loyalty_account_number
+        - addUniqueConstraint:
+            tableName: loyalty_account
+            columnNames: customer_id,loyalty_program_id
+            constraintName: uq_loyalty_account_customer_program
+
+  - changeSet:
+      id: 0028-create-loyalty_account_tier
+      author: andrey
+      description: Historial de tiers de lealtad
+      changes:
+        - createTable:
+            tableName: loyalty_account_tier
+            columns:
+              - column:
+                  name: loyalty_account_tier_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: loyalty_account_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: loyalty_account(loyalty_account_id)
+              - column:
+                  name: loyalty_tier_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: loyalty_tier(loyalty_tier_id)
+              - column:
+                  name: assigned_at
+                  type: timestamptz
+                  constraints:
+                    nullable: false
+              - column:
+                  name: expires_at
+                  type: timestamptz
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: loyalty_account_tier
+            columnNames: loyalty_account_id,assigned_at
+            constraintName: uq_loyalty_account_tier_point
+        - addCheckConstraint:
+            tableName: loyalty_account_tier
+            constraintName: ck_loyalty_account_tier_dates
+            condition: expires_at IS NULL OR expires_at > assigned_at
+
+  - changeSet:
+      id: 0029-create-miles_transaction
+      author: andrey
+      description: Transacciones de millas
+      changes:
+        - createTable:
+            tableName: miles_transaction
+            columns:
+              - column:
+                  name: miles_transaction_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: loyalty_account_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: loyalty_account(loyalty_account_id)
+              - column:
+                  name: transaction_type
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: miles_delta
+                  type: integer
+                  constraints:
+                    nullable: false
+              - column:
+                  name: occurred_at
+                  type: timestamptz
+                  constraints:
+                    nullable: false
+              - column:
+                  name: reference_code
+                  type: varchar(60)
+              - column:
+                  name: notes
+                  type: text
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addCheckConstraint:
+            tableName: miles_transaction
+            constraintName: ck_miles_transaction_type
+            condition: transaction_type IN ('EARN', 'REDEEM', 'ADJUST')
+        - addCheckConstraint:
+            tableName: miles_transaction
+            constraintName: ck_miles_delta_non_zero
+            condition: miles_delta <> 0
+
+  - changeSet:
+      id: 0030-create-customer_benefit
+      author: andrey
+      description: Beneficios otorgados a clientes
+      changes:
+        - createTable:
+            tableName: customer_benefit
+            columns:
+              - column:
+                  name: customer_benefit_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: customer_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: customer(customer_id)
+              - column:
+                  name: benefit_type_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: benefit_type(benefit_type_id)
+              - column:
+                  name: granted_at
+                  type: timestamptz
+                  constraints:
+                    nullable: false
+              - column:
+                  name: expires_at
+                  type: timestamptz
+              - column:
+                  name: notes
+                  type: text
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: customer_benefit
+            columnNames: customer_id,benefit_type_id,granted_at
+            constraintName: uq_customer_benefit
+        - addCheckConstraint:
+            tableName: customer_benefit
+            constraintName: ck_customer_benefit_dates
+            condition: expires_at IS NULL OR expires_at > granted_at
+
+  # ============================================
+  # AIRPORT
+  # ============================================
+
+  - changeSet:
+      id: 0031-create-airport
+      author: andrey
+      description: Tabla de aeropuertos
+      changes:
+        - createTable:
+            tableName: airport
+            columns:
+              - column:
+                  name: airport_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: address_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: address(address_id)
+              - column:
+                  name: airport_name
+                  type: varchar(150)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: iata_code
+                  type: varchar(3)
+              - column:
+                  name: icao_code
+                  type: varchar(4)
+              - column:
+                  name: is_active
+                  type: boolean
+                  defaultValue: true
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: airport
+            columnNames: iata_code
+            constraintName: uq_airport_iata
+        - addUniqueConstraint:
+            tableName: airport
+            columnNames: icao_code
+            constraintName: uq_airport_icao
+        - addCheckConstraint:
+            tableName: airport
+            constraintName: ck_airport_iata_len
+            condition: iata_code IS NULL OR char_length(iata_code) = 3
+        - addCheckConstraint:
+            tableName: airport
+            constraintName: ck_airport_icao_len
+            condition: icao_code IS NULL OR char_length(icao_code) = 4
+
+  - changeSet:
+      id: 0032-create-terminal
+      author: andrey
+      description: Terminales de aeropuerto
+      changes:
+        - createTable:
+            tableName: terminal
+            columns:
+              - column:
+                  name: terminal_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: airport_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: airport(airport_id)
+              - column:
+                  name: terminal_code
+                  type: varchar(10)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: terminal_name
+                  type: varchar(80)
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: terminal
+            columnNames: airport_id,terminal_code
+            constraintName: uq_terminal_code
+
+  - changeSet:
+      id: 0033-create-boarding_gate
+      author: andrey
+      description: Puertas de embarque
+      changes:
+        - createTable:
+            tableName: boarding_gate
+            columns:
+              - column:
+                  name: boarding_gate_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: terminal_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: terminal(terminal_id)
+              - column:
+                  name: gate_code
+                  type: varchar(10)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_active
+                  type: boolean
+                  defaultValue: true
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: boarding_gate
+            columnNames: terminal_id,gate_code
+            constraintName: uq_boarding_gate_code
+
+  - changeSet:
+      id: 0034-create-runway
+      author: andrey
+      description: Pistas de aterrizaje
+      changes:
+        - createTable:
+            tableName: runway
+            columns:
+              - column:
+                  name: runway_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: airport_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: airport(airport_id)
+              - column:
+                  name: runway_code
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: length_meters
+                  type: integer
+                  constraints:
+                    nullable: false
+              - column:
+                  name: surface_type
+                  type: varchar(30)
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: runway
+            columnNames: airport_id,runway_code
+            constraintName: uq_runway_code
+        - addCheckConstraint:
+            tableName: runway
+            constraintName: ck_runway_length
+            condition: length_meters > 0
+
+  - changeSet:
+      id: 0035-create-airport_regulation
+      author: andrey
+      description: Regulaciones de aeropuerto
+      changes:
+        - createTable:
+            tableName: airport_regulation
+            columns:
+              - column:
+                  name: airport_regulation_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: airport_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: airport(airport_id)
+              - column:
+                  name: regulation_code
+                  type: varchar(30)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: regulation_title
+                  type: varchar(150)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: issuing_authority
+                  type: varchar(120)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: effective_from
+                  type: date
+                  constraints:
+                    nullable: false
+              - column:
+                  name: effective_to
+                  type: date
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: airport_regulation
+            columnNames: airport_id,regulation_code
+            constraintName: uq_airport_regulation
+        - addCheckConstraint:
+            tableName: airport_regulation
+            constraintName: ck_airport_regulation_dates
+            condition: effective_to IS NULL OR effective_to >= effective_from
+
+  # ============================================
+  # AIRCRAFT
+  # ============================================
+
+  - changeSet:
+      id: 0036-create-aircraft_manufacturer
+      author: andrey
+      description: Fabricantes de aeronaves
+      changes:
+        - createTable:
+            tableName: aircraft_manufacturer
+            columns:
+              - column:
+                  name: aircraft_manufacturer_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: manufacturer_name
+                  type: varchar(120)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: aircraft_manufacturer
+            columnNames: manufacturer_name
+            constraintName: uq_aircraft_manufacturer_name
+
+  - changeSet:
+      id: 0037-create-aircraft_model
+      author: andrey
+      description: Modelos de aeronaves
+      changes:
+        - createTable:
+            tableName: aircraft_model
+            columns:
+              - column:
+                  name: aircraft_model_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: aircraft_manufacturer_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: aircraft_manufacturer(aircraft_manufacturer_id)
+              - column:
+                  name: model_code
+                  type: varchar(30)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: model_name
+                  type: varchar(120)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: max_range_km
+                  type: integer
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: aircraft_model
+            columnNames: aircraft_manufacturer_id,model_code
+            constraintName: uq_aircraft_model_code
+        - addUniqueConstraint:
+            tableName: aircraft_model
+            columnNames: aircraft_manufacturer_id,model_name
+            constraintName: uq_aircraft_model_name
+        - addCheckConstraint:
+            tableName: aircraft_model
+            constraintName: ck_aircraft_model_range
+            condition: max_range_km IS NULL OR max_range_km > 0
+
+  - changeSet:
+      id: 0038-create-cabin_class
+      author: andrey
+      description: Clases de cabina
+      changes:
+        - createTable:
+            tableName: cabin_class
+            columns:
+              - column:
+                  name: cabin_class_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: class_code
+                  type: varchar(10)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: class_name
+                  type: varchar(60)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: cabin_class
+            columnNames: class_code
+            constraintName: uq_cabin_class_code
+        - addUniqueConstraint:
+            tableName: cabin_class
+            columnNames: class_name
+            constraintName: uq_cabin_class_name
+
+  - changeSet:
+      id: 0039-create-aircraft
+      author: andrey
+      description: Aeronaves
+      changes:
+        - createTable:
+            tableName: aircraft
+            columns:
+              - column:
+                  name: aircraft_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: airline_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: airline(airline_id)
+              - column:
+                  name: aircraft_model_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: aircraft_model(aircraft_model_id)
+              - column:
+                  name: registration_number
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: serial_number
+                  type: varchar(40)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: in_service_on
+                  type: date
+              - column:
+                  name: retired_on
+                  type: date
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: aircraft
+            columnNames: registration_number
+            constraintName: uq_aircraft_registration
+        - addUniqueConstraint:
+            tableName: aircraft
+            columnNames: serial_number
+            constraintName: uq_aircraft_serial
+        - addCheckConstraint:
+            tableName: aircraft
+            constraintName: ck_aircraft_service_dates
+            condition: retired_on IS NULL OR in_service_on IS NULL OR retired_on >= in_service_on
+
+  - changeSet:
+      id: 0040-create-aircraft_cabin
+      author: andrey
+      description: Cabinas por aeronave
+      changes:
+        - createTable:
+            tableName: aircraft_cabin
+            columns:
+              - column:
+                  name: aircraft_cabin_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: aircraft_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: aircraft(aircraft_id)
+              - column:
+                  name: cabin_class_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: cabin_class(cabin_class_id)
+              - column:
+                  name: cabin_code
+                  type: varchar(10)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: deck_number
+                  type: smallint
+                  defaultValue: 1
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: aircraft_cabin
+            columnNames: aircraft_id,cabin_code
+            constraintName: uq_aircraft_cabin_code
+        - addCheckConstraint:
+            tableName: aircraft_cabin
+            constraintName: ck_aircraft_cabin_deck
+            condition: deck_number > 0
+
+  - changeSet:
+      id: 0041-create-aircraft_seat
+      author: andrey
+      description: Asientos de aeronaves
+      changes:
+        - createTable:
+            tableName: aircraft_seat
+            columns:
+              - column:
+                  name: aircraft_seat_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: aircraft_cabin_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: aircraft_cabin(aircraft_cabin_id)
+              - column:
+                  name: seat_row_number
+                  type: integer
+                  constraints:
+                    nullable: false
+              - column:
+                  name: seat_column_code
+                  type: varchar(3)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_window
+                  type: boolean
+                  defaultValue: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_aisle
+                  type: boolean
+                  defaultValue: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_exit_row
+                  type: boolean
+                  defaultValue: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: aircraft_seat
+            columnNames: aircraft_cabin_id,seat_row_number,seat_column_code
+            constraintName: uq_aircraft_seat_position
+        - addCheckConstraint:
+            tableName: aircraft_seat
+            constraintName: ck_aircraft_seat_row
+            condition: seat_row_number > 0
+
+  - changeSet:
+      id: 0042-create-maintenance_provider
+      author: andrey
+      description: Proveedores de mantenimiento
+      changes:
+        - createTable:
+            tableName: maintenance_provider
+            columns:
+              - column:
+                  name: maintenance_provider_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: address_id
+                  type: uuid
+                  constraints:
+                    references: address(address_id)
+              - column:
+                  name: provider_name
+                  type: varchar(150)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: contact_name
+                  type: varchar(120)
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: maintenance_provider
+            columnNames: provider_name
+            constraintName: uq_maintenance_provider_name
+
+  - changeSet:
+      id: 0043-create-maintenance_type
+      author: andrey
+      description: Tipos de mantenimiento
+      changes:
+        - createTable:
+            tableName: maintenance_type
+            columns:
+              - column:
+                  name: maintenance_type_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: type_code
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: type_name
+                  type: varchar(80)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: maintenance_type
+            columnNames: type_code
+            constraintName: uq_maintenance_type_code
+        - addUniqueConstraint:
+            tableName: maintenance_type
+            columnNames: type_name
+            constraintName: uq_maintenance_type_name
+
+  - changeSet:
+      id: 0044-create-maintenance_event
+      author: andrey
+      description: Eventos de mantenimiento
+      changes:
+        - createTable:
+            tableName: maintenance_event
+            columns:
+              - column:
+                  name: maintenance_event_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: aircraft_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: aircraft(aircraft_id)
+              - column:
+                  name: maintenance_type_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: maintenance_type(maintenance_type_id)
+              - column:
+                  name: maintenance_provider_id
+                  type: uuid
+                  constraints:
+                    references: maintenance_provider(maintenance_provider_id)
+              - column:
+                  name: status_code
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: started_at
+                  type: timestamptz
+                  constraints:
+                    nullable: false
+              - column:
+                  name: completed_at
+                  type: timestamptz
+              - column:
+                  name: notes
+                  type: text
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addCheckConstraint:
+            tableName: maintenance_event
+            constraintName: ck_maintenance_event_status
+            condition: status_code IN ('PLANNED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED')
+        - addCheckConstraint:
+            tableName: maintenance_event
+            constraintName: ck_maintenance_event_dates
+            condition: completed_at IS NULL OR completed_at >= started_at
+
+  # ============================================
+  # FLIGHT OPERATIONS
+  # ============================================
+
+  - changeSet:
+      id: 0045-create-flight_status
+      author: andrey
+      description: Estados de vuelo
+      changes:
+        - createTable:
+            tableName: flight_status
+            columns:
+              - column:
+                  name: flight_status_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: status_code
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status_name
+                  type: varchar(80)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: flight_status
+            columnNames: status_code
+            constraintName: uq_flight_status_code
+        - addUniqueConstraint:
+            tableName: flight_status
+            columnNames: status_name
+            constraintName: uq_flight_status_name
+
+  - changeSet:
+      id: 0046-create-delay_reason_type
+      author: andrey
+      description: Tipos de razones de retraso
+      changes:
+        - createTable:
+            tableName: delay_reason_type
+            columns:
+              - column:
+                  name: delay_reason_type_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: reason_code
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: reason_name
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: delay_reason_type
+            columnNames: reason_code
+            constraintName: uq_delay_reason_code
+        - addUniqueConstraint:
+            tableName: delay_reason_type
+            columnNames: reason_name
+            constraintName: uq_delay_reason_name
+
+  - changeSet:
+      id: 0047-create-flight
+      author: andrey
+      description: Vuelos
+      changes:
+        - createTable:
+            tableName: flight
+            columns:
+              - column:
+                  name: flight_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: airline_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: airline(airline_id)
+              - column:
+                  name: aircraft_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: aircraft(aircraft_id)
+              - column:
+                  name: flight_status_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: flight_status(flight_status_id)
+              - column:
+                  name: flight_number
+                  type: varchar(12)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: service_date
+                  type: date
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: flight
+            columnNames: airline_id,flight_number,service_date
+            constraintName: uq_flight_instance
+
+  - changeSet:
+      id: 0048-create-flight_segment
+      author: andrey
+      description: Segmentos de vuelo
+      changes:
+        - createTable:
+            tableName: flight_segment
+            columns:
+              - column:
+                  name: flight_segment_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: flight_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: flight(flight_id)
+              - column:
+                  name: origin_airport_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: airport(airport_id)
+              - column:
+                  name: destination_airport_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: airport(airport_id)
+              - column:
+                  name: segment_number
+                  type: integer
+                  constraints:
+                    nullable: false
+              - column:
+                  name: scheduled_departure_at
+                  type: timestamptz
+                  constraints:
+                    nullable: false
+              - column:
+                  name: scheduled_arrival_at
+                  type: timestamptz
+                  constraints:
+                    nullable: false
+              - column:
+                  name: actual_departure_at
+                  type: timestamptz
+              - column:
+                  name: actual_arrival_at
+                  type: timestamptz
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: flight_segment
+            columnNames: flight_id,segment_number
+            constraintName: uq_flight_segment_number
+        - addCheckConstraint:
+            tableName: flight_segment
+            constraintName: ck_flight_segment_airports
+            condition: origin_airport_id <> destination_airport_id
+        - addCheckConstraint:
+            tableName: flight_segment
+            constraintName: ck_flight_segment_schedule
+            condition: scheduled_arrival_at > scheduled_departure_at
+        - addCheckConstraint:
+            tableName: flight_segment
+            constraintName: ck_flight_segment_actuals
+            condition: actual_arrival_at IS NULL OR actual_departure_at IS NULL OR actual_arrival_at >= actual_departure_at
+
+  - changeSet:
+      id: 0049-create-flight_delay
+      author: andrey
+      description: Retrasos de vuelos
+      changes:
+        - createTable:
+            tableName: flight_delay
+            columns:
+              - column:
+                  name: flight_delay_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: flight_segment_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: flight_segment(flight_segment_id)
+              - column:
+                  name: delay_reason_type_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: delay_reason_type(delay_reason_type_id)
+              - column:
+                  name: reported_at
+                  type: timestamptz
+                  constraints:
+                    nullable: false
+              - column:
+                  name: delay_minutes
+                  type: integer
+                  constraints:
+                    nullable: false
+              - column:
+                  name: notes
+                  type: text
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addCheckConstraint:
+            tableName: flight_delay
+            constraintName: ck_flight_delay_minutes
+            condition: delay_minutes > 0
+
+  # ============================================
+  # SALES, RESERVATION, TICKETING
+  # ============================================
+
+  - changeSet:
+      id: 0050-create-reservation_status
+      author: andrey
+      description: Estados de reserva
+      changes:
+        - createTable:
+            tableName: reservation_status
+            columns:
+              - column:
+                  name: reservation_status_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: status_code
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status_name
+                  type: varchar(80)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: reservation_status
+            columnNames: status_code
+            constraintName: uq_reservation_status_code
+        - addUniqueConstraint:
+            tableName: reservation_status
+            columnNames: status_name
+            constraintName: uq_reservation_status_name
+
+  - changeSet:
+      id: 0051-create-sale_channel
+      author: andrey
+      description: Canales de venta
+      changes:
+        - createTable:
+            tableName: sale_channel
+            columns:
+              - column:
+                  name: sale_channel_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: channel_code
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: channel_name
+                  type: varchar(80)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: sale_channel
+            columnNames: channel_code
+            constraintName: uq_sale_channel_code
+        - addUniqueConstraint:
+            tableName: sale_channel
+            columnNames: channel_name
+            constraintName: uq_sale_channel_name
+
+  - changeSet:
+      id: 0052-create-fare_class
+      author: andrey
+      description: Clases tarifarias
+      changes:
+        - createTable:
+            tableName: fare_class
+            columns:
+              - column:
+                  name: fare_class_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: cabin_class_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: cabin_class(cabin_class_id)
+              - column:
+                  name: fare_class_code
+                  type: varchar(10)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: fare_class_name
+                  type: varchar(80)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_refundable_by_default
+                  type: boolean
+                  defaultValue: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: fare_class
+            columnNames: fare_class_code
+            constraintName: uq_fare_class_code
+        - addUniqueConstraint:
+            tableName: fare_class
+            columnNames: fare_class_name
+            constraintName: uq_fare_class_name
+
+  - changeSet:
+      id: 0053-create-fare
+      author: andrey
+      description: Tarifas
+      changes:
+        - createTable:
+            tableName: fare
+            columns:
+              - column:
+                  name: fare_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: airline_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: airline(airline_id)
+              - column:
+                  name: origin_airport_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: airport(airport_id)
+              - column:
+                  name: destination_airport_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: airport(airport_id)
+              - column:
+                  name: fare_class_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: fare_class(fare_class_id)
+              - column:
+                  name: currency_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: currency(currency_id)
+              - column:
+                  name: fare_code
+                  type: varchar(30)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: base_amount
+                  type: numeric(12,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: valid_from
+                  type: date
+                  constraints:
+                    nullable: false
+              - column:
+                  name: valid_to
+                  type: date
+              - column:
+                  name: baggage_allowance_qty
+                  type: integer
+                  defaultValue: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: change_penalty_amount
+                  type: numeric(12,2)
+              - column:
+                  name: refund_penalty_amount
+                  type: numeric(12,2)
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: fare
+            columnNames: fare_code
+            constraintName: uq_fare_code
+        - addCheckConstraint:
+            tableName: fare
+            constraintName: ck_fare_airports
+            condition: origin_airport_id <> destination_airport_id
+        - addCheckConstraint:
+            tableName: fare
+            constraintName: ck_fare_base_amount
+            condition: base_amount >= 0
+        - addCheckConstraint:
+            tableName: fare
+            constraintName: ck_fare_baggage_allowance
+            condition: baggage_allowance_qty >= 0
+        - addCheckConstraint:
+            tableName: fare
+            constraintName: ck_fare_change_penalty
+            condition: change_penalty_amount IS NULL OR change_penalty_amount >= 0
+        - addCheckConstraint:
+            tableName: fare
+            constraintName: ck_fare_refund_penalty
+            condition: refund_penalty_amount IS NULL OR refund_penalty_amount >= 0
+        - addCheckConstraint:
+            tableName: fare
+            constraintName: ck_fare_validity
+            condition: valid_to IS NULL OR valid_to >= valid_from
+
+  - changeSet:
+      id: 0054-create-ticket_status
+      author: andrey
+      description: Estados de ticket
+      changes:
+        - createTable:
+            tableName: ticket_status
+            columns:
+              - column:
+                  name: ticket_status_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: status_code
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status_name
+                  type: varchar(80)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: ticket_status
+            columnNames: status_code
+            constraintName: uq_ticket_status_code
+        - addUniqueConstraint:
+            tableName: ticket_status
+            columnNames: status_name
+            constraintName: uq_ticket_status_name
+
+  - changeSet:
+      id: 0055-create-reservation
+      author: andrey
+      description: Reservas (entidad raíz del flujo comercial)
+      changes:
+        - createTable:
+            tableName: reservation
+            columns:
+              - column:
+                  name: reservation_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: booked_by_customer_id
+                  type: uuid
+                  constraints:
+                    references: customer(customer_id)
+              - column:
+                  name: reservation_status_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: reservation_status(reservation_status_id)
+              - column:
+                  name: sale_channel_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: sale_channel(sale_channel_id)
+              - column:
+                  name: reservation_code
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: booked_at
+                  type: timestamptz
+                  constraints:
+                    nullable: false
+              - column:
+                  name: expires_at
+                  type: timestamptz
+              - column:
+                  name: notes
+                  type: text
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: reservation
+            columnNames: reservation_code
+            constraintName: uq_reservation_code
+        - addCheckConstraint:
+            tableName: reservation
+            constraintName: ck_reservation_dates
+            condition: expires_at IS NULL OR expires_at > booked_at
+
+  - changeSet:
+      id: 0056-create-reservation_passenger
+      author: andrey
+      description: Pasajeros por reserva
+      changes:
+        - createTable:
+            tableName: reservation_passenger
+            columns:
+              - column:
+                  name: reservation_passenger_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: reservation_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: reservation(reservation_id)
+              - column:
+                  name: person_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: person(person_id)
+              - column:
+                  name: passenger_sequence_no
+                  type: integer
+                  constraints:
+                    nullable: false
+              - column:
+                  name: passenger_type
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: reservation_passenger
+            columnNames: reservation_id,person_id
+            constraintName: uq_reservation_passenger_person
+        - addUniqueConstraint:
+            tableName: reservation_passenger
+            columnNames: reservation_id,passenger_sequence_no
+            constraintName: uq_reservation_passenger_sequence
+        - addCheckConstraint:
+            tableName: reservation_passenger
+            constraintName: ck_reservation_passenger_sequence
+            condition: passenger_sequence_no > 0
+        - addCheckConstraint:
+            tableName: reservation_passenger
+            constraintName: ck_reservation_passenger_type
+            condition: passenger_type IN ('ADULT', 'CHILD', 'INFANT')
+
+  - changeSet:
+      id: 0057-create-sale
+      author: andrey
+      description: Ventas
+      changes:
+        - createTable:
+            tableName: sale
+            columns:
+              - column:
+                  name: sale_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: reservation_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: reservation(reservation_id)
+              - column:
+                  name: currency_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: currency(currency_id)
+              - column:
+                  name: sale_code
+                  type: varchar(30)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: sold_at
+                  type: timestamptz
+                  constraints:
+                    nullable: false
+              - column:
+                  name: external_reference
+                  type: varchar(50)
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: sale
+            columnNames: sale_code
+            constraintName: uq_sale_code
+
+  - changeSet:
+      id: 0058-create-ticket
+      author: andrey
+      description: Tickets
+      changes:
+        - createTable:
+            tableName: ticket
+            columns:
+              - column:
+                  name: ticket_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: sale_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: sale(sale_id)
+              - column:
+                  name: reservation_passenger_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: reservation_passenger(reservation_passenger_id)
+              - column:
+                  name: fare_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: fare(fare_id)
+              - column:
+                  name: ticket_status_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: ticket_status(ticket_status_id)
+              - column:
+                  name: ticket_number
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: issued_at
+                  type: timestamptz
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: ticket
+            columnNames: ticket_number
+            constraintName: uq_ticket_number
+
+  - changeSet:
+      id: 0059-create-ticket_segment
+      author: andrey
+      description: Segmentos de ticket (soporta escalas)
+      changes:
+        - createTable:
+            tableName: ticket_segment
+            columns:
+              - column:
+                  name: ticket_segment_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: ticket_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: ticket(ticket_id)
+              - column:
+                  name: flight_segment_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: flight_segment(flight_segment_id)
+              - column:
+                  name: segment_sequence_no
+                  type: integer
+                  constraints:
+                    nullable: false
+              - column:
+                  name: fare_basis_code
+                  type: varchar(20)
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: ticket_segment
+            columnNames: ticket_id,segment_sequence_no
+            constraintName: uq_ticket_segment_sequence
+        - addUniqueConstraint:
+            tableName: ticket_segment
+            columnNames: ticket_id,flight_segment_id
+            constraintName: uq_ticket_segment_flight
+        - addCheckConstraint:
+            tableName: ticket_segment
+            constraintName: ck_ticket_segment_sequence
+            condition: segment_sequence_no > 0
+
+  - changeSet:
+      id: 0060-create-seat_assignment
+      author: andrey
+      description: Asignación de asientos
+      changes:
+        - createTable:
+            tableName: seat_assignment
+            columns:
+              - column:
+                  name: seat_assignment_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: ticket_segment_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+              - column:
+                  name: flight_segment_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+              - column:
+                  name: aircraft_seat_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: aircraft_seat(aircraft_seat_id)
+              - column:
+                  name: assigned_at
+                  type: timestamptz
+                  constraints:
+                    nullable: false
+              - column:
+                  name: assignment_source
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: seat_assignment
+            columnNames: ticket_segment_id
+            constraintName: uq_seat_assignment_ticket_segment
+        - addUniqueConstraint:
+            tableName: seat_assignment
+            columnNames: flight_segment_id,aircraft_seat_id
+            constraintName: uq_seat_assignment_flight_seat
+        - addCheckConstraint:
+            tableName: seat_assignment
+            constraintName: ck_seat_assignment_source
+            condition: assignment_source IN ('AUTO', 'MANUAL', 'CUSTOMER')
+        - addForeignKeyConstraint:
+            baseTableName: seat_assignment
+            baseColumnNames: ticket_segment_id,flight_segment_id
+            referencedTableName: ticket_segment
+            referencedColumnNames: ticket_segment_id,flight_segment_id
+            constraintName: fk_seat_assignment_ticket_segment
+
+  - changeSet:
+      id: 0061-create-baggage
+      author: andrey
+      description: Equipaje
+      changes:
+        - createTable:
+            tableName: baggage
+            columns:
+              - column:
+                  name: baggage_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: ticket_segment_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: ticket_segment(ticket_segment_id)
+              - column:
+                  name: baggage_tag
+                  type: varchar(30)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: baggage_type
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: baggage_status
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: weight_kg
+                  type: numeric(6,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: checked_at
+                  type: timestamptz
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: baggage
+            columnNames: baggage_tag
+            constraintName: uq_baggage_tag
+        - addCheckConstraint:
+            tableName: baggage
+            constraintName: ck_baggage_type
+            condition: baggage_type IN ('CHECKED', 'CARRY_ON', 'SPECIAL')
+        - addCheckConstraint:
+            tableName: baggage
+            constraintName: ck_baggage_status
+            condition: baggage_status IN ('REGISTERED', 'LOADED', 'CLAIMED', 'LOST')
+        - addCheckConstraint:
+            tableName: baggage
+            constraintName: ck_baggage_weight
+            condition: weight_kg > 0
+
+  # ============================================
+  # BOARDING
+  # ============================================
+
+  - changeSet:
+      id: 0062-create-boarding_group
+      author: andrey
+      description: Grupos de embarque
+      changes:
+        - createTable:
+            tableName: boarding_group
+            columns:
+              - column:
+                  name: boarding_group_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: group_code
+                  type: varchar(10)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: group_name
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: sequence_no
+                  type: integer
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: boarding_group
+            columnNames: group_code
+            constraintName: uq_boarding_group_code
+        - addUniqueConstraint:
+            tableName: boarding_group
+            columnNames: group_name
+            constraintName: uq_boarding_group_name
+        - addCheckConstraint:
+            tableName: boarding_group
+            constraintName: ck_boarding_group_sequence
+            condition: sequence_no > 0
+
+  - changeSet:
+      id: 0063-create-check_in_status
+      author: andrey
+      description: Estados de check-in
+      changes:
+        - createTable:
+            tableName: check_in_status
+            columns:
+              - column:
+                  name: check_in_status_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: status_code
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status_name
+                  type: varchar(80)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: check_in_status
+            columnNames: status_code
+            constraintName: uq_check_in_status_code
+        - addUniqueConstraint:
+            tableName: check_in_status
+            columnNames: status_name
+            constraintName: uq_check_in_status_name
+
+  - changeSet:
+      id: 0064-create-check_in
+      author: andrey
+      description: Check-in de pasajeros
+      changes:
+        - createTable:
+            tableName: check_in
+            columns:
+              - column:
+                  name: check_in_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: ticket_segment_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: ticket_segment(ticket_segment_id)
+              - column:
+                  name: check_in_status_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: check_in_status(check_in_status_id)
+              - column:
+                  name: boarding_group_id
+                  type: uuid
+                  constraints:
+                    references: boarding_group(boarding_group_id)
+              - column:
+                  name: checked_in_by_user_id
+                  type: uuid
+                  constraints:
+                    references: user_account(user_account_id)
+              - column:
+                  name: checked_in_at
+                  type: timestamptz
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: check_in
+            columnNames: ticket_segment_id
+            constraintName: uq_check_in_ticket_segment
+
+  - changeSet:
+      id: 0065-create-boarding_pass
+      author: andrey
+      description: Pases de abordar
+      changes:
+        - createTable:
+            tableName: boarding_pass
+            columns:
+              - column:
+                  name: boarding_pass_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: check_in_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: check_in(check_in_id)
+              - column:
+                  name: boarding_pass_code
+                  type: varchar(40)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: barcode_value
+                  type: varchar(120)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: issued_at
+                  type: timestamptz
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: boarding_pass
+            columnNames: check_in_id
+            constraintName: uq_boarding_pass_check_in
+        - addUniqueConstraint:
+            tableName: boarding_pass
+            columnNames: boarding_pass_code
+            constraintName: uq_boarding_pass_code
+        - addUniqueConstraint:
+            tableName: boarding_pass
+            columnNames: barcode_value
+            constraintName: uq_boarding_pass_barcode
+
+  - changeSet:
+      id: 0066-create-boarding_validation
+      author: andrey
+      description: Validaciones de embarque
+      changes:
+        - createTable:
+            tableName: boarding_validation
+            columns:
+              - column:
+                  name: boarding_validation_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: boarding_pass_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: boarding_pass(boarding_pass_id)
+              - column:
+                  name: boarding_gate_id
+                  type: uuid
+                  constraints:
+                    references: boarding_gate(boarding_gate_id)
+              - column:
+                  name: validated_by_user_id
+                  type: uuid
+                  constraints:
+                    references: user_account(user_account_id)
+              - column:
+                  name: validated_at
+                  type: timestamptz
+                  constraints:
+                    nullable: false
+              - column:
+                  name: validation_result
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: notes
+                  type: text
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addCheckConstraint:
+            tableName: boarding_validation
+            constraintName: ck_boarding_validation_result
+            condition: validation_result IN ('APPROVED', 'REJECTED', 'MANUAL_REVIEW')
+
+  # ============================================
+  # PAYMENT
+  # ============================================
+
+  - changeSet:
+      id: 0067-create-payment_status
+      author: andrey
+      description: Estados de pago
+      changes:
+        - createTable:
+            tableName: payment_status
+            columns:
+              - column:
+                  name: payment_status_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: status_code
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status_name
+                  type: varchar(80)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: payment_status
+            columnNames: status_code
+            constraintName: uq_payment_status_code
+        - addUniqueConstraint:
+            tableName: payment_status
+            columnNames: status_name
+            constraintName: uq_payment_status_name
+
+  - changeSet:
+      id: 0068-create-payment_method
+      author: andrey
+      description: Métodos de pago
+      changes:
+        - createTable:
+            tableName: payment_method
+            columns:
+              - column:
+                  name: payment_method_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: method_code
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: method_name
+                  type: varchar(80)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: payment_method
+            columnNames: method_code
+            constraintName: uq_payment_method_code
+        - addUniqueConstraint:
+            tableName: payment_method
+            columnNames: method_name
+            constraintName: uq_payment_method_name
+
+  - changeSet:
+      id: 0069-create-payment
+      author: andrey
+      description: Pagos
+      changes:
+        - createTable:
+            tableName: payment
+            columns:
+              - column:
+                  name: payment_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: sale_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: sale(sale_id)
+              - column:
+                  name: payment_status_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: payment_status(payment_status_id)
+              - column:
+                  name: payment_method_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: payment_method(payment_method_id)
+              - column:
+                  name: currency_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: currency(currency_id)
+              - column:
+                  name: payment_reference
+                  type: varchar(40)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: amount
+                  type: numeric(12,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: authorized_at
+                  type: timestamptz
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: payment
+            columnNames: payment_reference
+            constraintName: uq_payment_reference
+        - addCheckConstraint:
+            tableName: payment
+            constraintName: ck_payment_amount
+            condition: amount > 0
+
+  - changeSet:
+      id: 0070-create-payment_transaction
+      author: andrey
+      description: Transacciones de pago
+      changes:
+        - createTable:
+            tableName: payment_transaction
+            columns:
+              - column:
+                  name: payment_transaction_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: payment_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: payment(payment_id)
+              - column:
+                  name: transaction_reference
+                  type: varchar(60)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: transaction_type
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: transaction_amount
+                  type: numeric(12,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: processed_at
+                  type: timestamptz
+                  constraints:
+                    nullable: false
+              - column:
+                  name: provider_message
+                  type: text
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: payment_transaction
+            columnNames: transaction_reference
+            constraintName: uq_payment_transaction_reference
+        - addCheckConstraint:
+            tableName: payment_transaction
+            constraintName: ck_payment_transaction_type
+            condition: transaction_type IN ('AUTH', 'CAPTURE', 'VOID', 'REFUND', 'REVERSAL')
+        - addCheckConstraint:
+            tableName: payment_transaction
+            constraintName: ck_payment_transaction_amount
+            condition: transaction_amount > 0
+
+  - changeSet:
+      id: 0071-create-refund
+      author: andrey
+      description: Reembolsos
+      changes:
+        - createTable:
+            tableName: refund
+            columns:
+              - column:
+                  name: refund_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: payment_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: payment(payment_id)
+              - column:
+                  name: refund_reference
+                  type: varchar(40)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: amount
+                  type: numeric(12,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: requested_at
+                  type: timestamptz
+                  constraints:
+                    nullable: false
+              - column:
+                  name: processed_at
+                  type: timestamptz
+              - column:
+                  name: refund_reason
+                  type: text
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: refund
+            columnNames: refund_reference
+            constraintName: uq_refund_reference
+        - addCheckConstraint:
+            tableName: refund
+            constraintName: ck_refund_amount
+            condition: amount > 0
+        - addCheckConstraint:
+            tableName: refund
+            constraintName: ck_refund_dates
+            condition: processed_at IS NULL OR processed_at >= requested_at
+
+  # ============================================
+  # BILLING
+  # ============================================
+
+  - changeSet:
+      id: 0072-create-tax
+      author: andrey
+      description: Impuestos
+      changes:
+        - createTable:
+            tableName: tax
+            columns:
+              - column:
+                  name: tax_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: tax_code
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: tax_name
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: rate_percentage
+                  type: numeric(6,3)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: effective_from
+                  type: date
+                  constraints:
+                    nullable: false
+              - column:
+                  name: effective_to
+                  type: date
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: tax
+            columnNames: tax_code
+            constraintName: uq_tax_code
+        - addUniqueConstraint:
+            tableName: tax
+            columnNames: tax_name
+            constraintName: uq_tax_name
+        - addCheckConstraint:
+            tableName: tax
+            constraintName: ck_tax_rate
+            condition: rate_percentage >= 0
+        - addCheckConstraint:
+            tableName: tax
+            constraintName: ck_tax_dates
+            condition: effective_to IS NULL OR effective_to >= effective_from
+
+  - changeSet:
+      id: 0073-create-exchange_rate
+      author: andrey
+      description: Tasas de cambio
+      changes:
+        - createTable:
+            tableName: exchange_rate
+            columns:
+              - column:
+                  name: exchange_rate_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: from_currency_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: currency(currency_id)
+              - column:
+                  name: to_currency_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: currency(currency_id)
+              - column:
+                  name: effective_date
+                  type: date
+                  constraints:
+                    nullable: false
+              - column:
+                  name: rate_value
+                  type: numeric(18,8)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: exchange_rate
+            columnNames: from_currency_id,to_currency_id,effective_date
+            constraintName: uq_exchange_rate
+        - addCheckConstraint:
+            tableName: exchange_rate
+            constraintName: ck_exchange_rate_pair
+            condition: from_currency_id <> to_currency_id
+        - addCheckConstraint:
+            tableName: exchange_rate
+            constraintName: ck_exchange_rate_value
+            condition: rate_value > 0
+
+  - changeSet:
+      id: 0074-create-invoice_status
+      author: andrey
+      description: Estados de factura
+      changes:
+        - createTable:
+            tableName: invoice_status
+            columns:
+              - column:
+                  name: invoice_status_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: status_code
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status_name
+                  type: varchar(80)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: invoice_status
+            columnNames: status_code
+            constraintName: uq_invoice_status_code
+        - addUniqueConstraint:
+            tableName: invoice_status
+            columnNames: status_name
+            constraintName: uq_invoice_status_name
+
+  - changeSet:
+      id: 0075-create-invoice
+      author: andrey
+      description: Facturas
+      changes:
+        - createTable:
+            tableName: invoice
+            columns:
+              - column:
+                  name: invoice_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: sale_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: sale(sale_id)
+              - column:
+                  name: invoice_status_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: invoice_status(invoice_status_id)
+              - column:
+                  name: currency_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: currency(currency_id)
+              - column:
+                  name: invoice_number
+                  type: varchar(40)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: issued_at
+                  type: timestamptz
+                  constraints:
+                    nullable: false
+              - column:
+                  name: due_at
+                  type: timestamptz
+              - column:
+                  name: notes
+                  type: text
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: invoice
+            columnNames: invoice_number
+            constraintName: uq_invoice_number
+        - addCheckConstraint:
+            tableName: invoice
+            constraintName: ck_invoice_dates
+            condition: due_at IS NULL OR due_at >= issued_at
+
+  - changeSet:
+      id: 0076-create-invoice_line
+      author: andrey
+      description: Líneas de factura (3FN preservada)
+      changes:
+        - createTable:
+            tableName: invoice_line
+            columns:
+              - column:
+                  name: invoice_line_id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: invoice_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: invoice(invoice_id)
+              - column:
+                  name: tax_id
+                  type: uuid
+                  constraints:
+                    references: tax(tax_id)
+              - column:
+                  name: line_number
+                  type: integer
+                  constraints:
+                    nullable: false
+              - column:
+                  name: line_description
+                  type: varchar(200)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: quantity
+                  type: numeric(12,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: unit_price
+                  type: numeric(12,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: invoice_line
+            columnNames: invoice_id,line_number
+            constraintName: uq_invoice_line_number
+        - addCheckConstraint:
+            tableName: invoice_line
+            constraintName: ck_invoice_line_number
+            condition: line_number > 0
+        - addCheckConstraint:
+            tableName: invoice_line
+            constraintName: ck_invoice_line_quantity
+            condition: quantity > 0
+        - addCheckConstraint:
+            tableName: invoice_line
+            constraintName: ck_invoice_line_unit_price
+            condition: unit_price >= 0
+
+  # ============================================
+  # COMMENTS
+  # ============================================
+
+  - changeSet:
+      id: 0077-add-comments
+      author: andrey
+      description: Comentarios de documentación en tablas clave
+      changes:
+        - sql:
+            sql: |
+              COMMENT ON TABLE reservation IS 'Entidad raiz del flujo comercial y de booking del sistema.';
+              COMMENT ON TABLE ticket_segment IS 'Tabla puente entre ticket y segmentos de vuelo para soportar itinerarios con escalas.';
+              COMMENT ON TABLE seat_assignment IS 'Asignacion de asiento normalizada por ticket_segment con control de unicidad por segmento y asiento.';
+              COMMENT ON TABLE loyalty_account_tier IS 'Historial de asignacion de nivel para evitar dependencia transitiva en loyalty_account.';
+              COMMENT ON TABLE invoice_line IS 'Detalle facturable sin totales derivados persistidos, para preservar 3FN.';
+            endDelimiter: ;
+
+  # ============================================
+  # INDEXES
+  # ============================================
+
+  - changeSet:
+      id: 0078-create-indexes
+      author: andrey
+      description: Índices de rendimiento
+      changes:
+        - sql:
+            sql: |
+              CREATE INDEX idx_country_continent_id ON country(continent_id);
+              CREATE INDEX idx_state_country_id ON state_province(country_id);
+              CREATE INDEX idx_city_state_id ON city(state_province_id);
+              CREATE INDEX idx_district_city_id ON district(city_id);
+              CREATE INDEX idx_address_district_id ON address(district_id);
+              CREATE INDEX idx_person_person_type_id ON person(person_type_id);
+              CREATE INDEX idx_person_nationality_country_id ON person(nationality_country_id);
+              CREATE INDEX idx_person_document_person_id ON person_document(person_id);
+              CREATE INDEX idx_person_document_number ON person_document(document_number);
+              CREATE INDEX idx_person_contact_person_id ON person_contact(person_id);
+              CREATE INDEX idx_person_contact_value ON person_contact(contact_value);
+              CREATE INDEX idx_user_account_status_id ON user_account(user_status_id);
+              CREATE INDEX idx_user_role_user_account_id ON user_role(user_account_id);
+              CREATE INDEX idx_user_role_role_id ON user_role(security_role_id);
+              CREATE INDEX idx_role_permission_role_id ON role_permission(security_role_id);
+              CREATE INDEX idx_role_permission_permission_id ON role_permission(security_permission_id);
+              CREATE INDEX idx_customer_person_id ON customer(person_id);
+              CREATE INDEX idx_loyalty_program_airline_id ON loyalty_program(airline_id);
+              CREATE INDEX idx_loyalty_account_customer_id ON loyalty_account(customer_id);
+              CREATE INDEX idx_loyalty_account_tier_account_id ON loyalty_account_tier(loyalty_account_id);
+              CREATE INDEX idx_miles_transaction_account_id ON miles_transaction(loyalty_account_id);
+              CREATE INDEX idx_airport_address_id ON airport(address_id);
+              CREATE INDEX idx_terminal_airport_id ON terminal(airport_id);
+              CREATE INDEX idx_boarding_gate_terminal_id ON boarding_gate(terminal_id);
+              CREATE INDEX idx_runway_airport_id ON runway(airport_id);
+              CREATE INDEX idx_aircraft_airline_id ON aircraft(airline_id);
+              CREATE INDEX idx_aircraft_model_id ON aircraft(aircraft_model_id);
+              CREATE INDEX idx_aircraft_cabin_aircraft_id ON aircraft_cabin(aircraft_id);
+              CREATE INDEX idx_aircraft_seat_cabin_id ON aircraft_seat(aircraft_cabin_id);
+              CREATE INDEX idx_maintenance_event_aircraft_id ON maintenance_event(aircraft_id);
+              CREATE INDEX idx_flight_aircraft_id ON flight(aircraft_id);
+              CREATE INDEX idx_flight_service_date ON flight(service_date);
+              CREATE INDEX idx_flight_segment_flight_id ON flight_segment(flight_id);
+              CREATE INDEX idx_flight_segment_origin_airport_id ON flight_segment(origin_airport_id);
+              CREATE INDEX idx_flight_segment_destination_airport_id ON flight_segment(destination_airport_id);
+              CREATE INDEX idx_flight_delay_segment_id ON flight_delay(flight_segment_id);
+              CREATE INDEX idx_fare_class_cabin_class_id ON fare_class(cabin_class_id);
+              CREATE INDEX idx_fare_airline_id ON fare(airline_id);
+              CREATE INDEX idx_reservation_status_id ON reservation(reservation_status_id);
+              CREATE INDEX idx_reservation_booked_by_customer_id ON reservation(booked_by_customer_id);
+              CREATE INDEX idx_reservation_passenger_person_id ON reservation_passenger(person_id);
+              CREATE INDEX idx_sale_reservation_id ON sale(reservation_id);
+              CREATE INDEX idx_ticket_sale_id ON ticket(sale_id);
+              CREATE INDEX idx_ticket_reservation_passenger_id ON ticket(reservation_passenger_id);
+              CREATE INDEX idx_ticket_segment_ticket_id ON ticket_segment(ticket_id);
+              CREATE INDEX idx_ticket_segment_flight_segment_id ON ticket_segment(flight_segment_id);
+              CREATE INDEX idx_seat_assignment_aircraft_seat_id ON seat_assignment(aircraft_seat_id);
+              CREATE INDEX idx_baggage_ticket_segment_id ON baggage(ticket_segment_id);
+              CREATE INDEX idx_check_in_status_id ON check_in(check_in_status_id);
+              CREATE INDEX idx_boarding_pass_check_in_id ON boarding_pass(check_in_id);
+              CREATE INDEX idx_boarding_validation_boarding_pass_id ON boarding_validation(boarding_pass_id);
+              CREATE INDEX idx_payment_sale_id ON payment(sale_id);
+              CREATE INDEX idx_payment_status_id ON payment(payment_status_id);
+              CREATE INDEX idx_payment_transaction_payment_id ON payment_transaction(payment_id);
+              CREATE INDEX idx_refund_payment_id ON refund(payment_id);
+              CREATE INDEX idx_exchange_rate_from_to_date ON exchange_rate(from_currency_id, to_currency_id, effective_date);
+              CREATE INDEX idx_invoice_sale_id ON invoice(sale_id);
+              CREATE INDEX idx_invoice_status_id ON invoice(invoice_status_id);
+              CREATE INDEX idx_invoice_line_invoice_id ON invoice_line(invoice_id);
+            endDelimiter: ;
