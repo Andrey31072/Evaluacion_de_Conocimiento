@@ -1,1 +1,42 @@
-databaseChangeLog: []
+databaseChangeLog:
+  - changeSet:
+      id: 3001-create-security-roles
+      author: andrey
+      description: Creación de roles de seguridad diferenciados
+      changes:
+        - sql:
+            sql: |
+              -- Roles principales
+              CREATE ROLE airline_admin;
+              CREATE ROLE airline_operator;
+              CREATE ROLE customer_service;
+              CREATE ROLE finance;
+              CREATE ROLE auditor;
+              CREATE ROLE readonly;
+              CREATE ROLE app_migrator;   -- Para Liquibase y migraciones
+
+              -- Rol de aplicación (usado por el backend)
+              CREATE ROLE airline_app WITH LOGIN PASSWORD 'SecureAppPass2026!';
+              GRANT airline_app TO airline_admin;  -- El admin hereda todo
+
+              -- Jerarquía de roles (herencia)
+              GRANT readonly TO auditor, customer_service, finance, airline_operator;
+            endDelimiter: ;
+            splitStatements: true
+
+  - changeSet:
+      id: 3002-insert-initial-roles-and-permissions
+      author: andrey
+      description: Insertar roles y permisos en las tablas de seguridad
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO security_role (role_code, role_name, role_description) VALUES
+                ('ADMIN', 'Administrador del Sistema', 'Acceso total'),
+                ('OPERATOR', 'Operador de Aerolínea', 'Gestión operativa de vuelos y aeronaves'),
+                ('CUSTOMER_SERVICE', 'Servicio al Cliente', 'Gestión de reservas y pasajeros'),
+                ('FINANCE', 'Finanzas', 'Pagos, facturación y reembolsos'),
+                ('AUDITOR', 'Auditor', 'Acceso de solo lectura con trazabilidad'),
+                ('READONLY', 'Consulta General', 'Acceso de solo lectura para reportes')
+              ON CONFLICT (role_code) DO NOTHING;
+            endDelimiter: ;
