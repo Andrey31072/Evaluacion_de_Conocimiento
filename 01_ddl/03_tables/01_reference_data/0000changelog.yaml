@@ -1,0 +1,4 @@
+databaseChangeLog:
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0001-create-time_zone }
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0002-create-continent }
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0008-create-currency }

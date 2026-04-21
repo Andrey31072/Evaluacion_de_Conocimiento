@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0067-create-payment_status }
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0068-create-payment_method }
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0069-create-payment }
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0070-create-payment_transaction }
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0071-create-refund }
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0072-create-tax }
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0073-create-exchange_rate }
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0074-create-invoice_status }
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0075-create-invoice }
+  - include: { file: ../../../03_tables/0000changelog.yaml, changeSetId: 0076-create-invoice_line }
